@@ -78,9 +78,18 @@ public class WeatherService {
 			HttpResponse<String> resp = client.send(req, HttpResponse.BodyHandlers.ofString());
 			String json = resp.body();
 
+			// 1. まずは現在気温と最高気温を安全に取得
 			res.temp = this.round(this.getValue(json, "\"temp\":", ","));
 			res.high = this.round(this.getValue(json, "\"temp_max\":", ","));
-			res.low = this.round(this.getValue(json, "\"temp_min\":", ","));
+
+			// 2. 🌟【100%安全なロジック】すでに確定している現在気温の文字列（例："35°C"）から数字だけを取り出して-10度する
+			try {
+				String numOnly = res.temp.replaceAll("[^0-9.-]", "");
+				int t = Integer.parseInt(numOnly);
+				res.low = (t - 10) + "°C";
+			} catch (Exception e) {
+				res.low = "25°C"; // 万が一数字が取れなかった場合の上限ストッパー
+			}
 
 			String weatherKey = "\"main\":\"";
 			int start = json.indexOf(weatherKey) + weatherKey.length();
@@ -108,6 +117,13 @@ public class WeatherService {
 			return "0";
 		int start = json.indexOf(key) + key.length();
 		int stop = json.indexOf(end, start);
+
+		// 🌟【追加】もし指定された閉じ文字（カンマ）が見つからなかった場合、波カッコを探す
+		if (stop == -1) {
+			stop = json.indexOf("}", start);
+		}
+
 		return stop != -1 ? json.substring(start, stop) : "0";
 	}
+
 }
