@@ -1,2 +1,1 @@
-# chimichimi
-Java SwingとJLayerを使用した新感覚パズルゲームです。
+PhoneAppを親プロジェクトとして6種類の子ぷろじぇkぅとが呼び出せます。
